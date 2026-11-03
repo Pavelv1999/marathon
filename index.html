@@ -1,0 +1,821 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Досуговый марафон</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Golos+Text:wght@400;500;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: one centred page of a squared school notebook with a red margin line at left; grades are written in a teacher's red pen on a 10-point scale */
+:root {
+  --paper: #FBFBF6;
+  --grid: rgba(64, 104, 190, 0.14);
+  --margin: #E0574F;
+  --ink: #1A2C6B;
+  --ink-soft: #4C5A88;
+  --card: #FFFFFF;
+  --line: #D3DAEA;
+  --pen: #C2202B;
+  --pen-tint: rgba(194, 32, 43, 0.08);
+  --good: #1D7448;
+  --good-tint: rgba(29, 116, 72, 0.09);
+  --on-ink: #FBFBF6;
+  --focus: #E0574F;
+  --font-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --font-body: "Golos Text", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-hand: "Caveat", "Segoe Print", "Comic Sans MS", cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0F1626; --grid: rgba(130, 160, 235, 0.10); --margin: #9E3D3C;
+    --ink: #DDE5FF; --ink-soft: #9DAAD3; --card: #162036; --line: #2A3655;
+    --pen: #FF6B70; --pen-tint: rgba(255, 107, 112, 0.12);
+    --good: #4CC890; --good-tint: rgba(76, 200, 144, 0.12);
+    --on-ink: #0F1626; --focus: #FF8A8E;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0F1626; --grid: rgba(130, 160, 235, 0.10); --margin: #9E3D3C;
+  --ink: #DDE5FF; --ink-soft: #9DAAD3; --card: #162036; --line: #2A3655;
+  --pen: #FF6B70; --pen-tint: rgba(255, 107, 112, 0.12);
+  --good: #4CC890; --good-tint: rgba(76, 200, 144, 0.12);
+  --on-ink: #0F1626; --focus: #FF8A8E;
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 56px;
+}
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  position: relative;
+  padding-left: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.page::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: -28px;
+  bottom: -56px;
+  width: 2px;
+  background: var(--margin);
+}
+
+h1, h2, h3, p { margin: 0; }
+h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(28px, 7vw, 46px);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(19px, 4.4vw, 24px);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+.eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.lede { font-size: 18px; color: var(--ink-soft); max-width: 60ch; }
+.hero { display: flex; flex-direction: column; gap: 14px; }
+
+.field { display: flex; flex-direction: column; gap: 6px; max-width: 420px; }
+.field label { font-size: 14px; font-weight: 600; color: var(--ink-soft); }
+.field input {
+  font: 500 17px var(--font-body);
+  color: var(--ink);
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+/* Ledger (the grade sheet) */
+.ledger { display: flex; flex-direction: column; }
+.ledger-head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  padding-bottom: 10px; border-bottom: 2px solid var(--ink);
+}
+.ledger-head span { font-size: 14px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.row {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 64px auto;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.row .num { font-family: var(--font-display); font-weight: 500; font-size: 18px; color: var(--ink-soft); }
+.row .topic { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.row .lec { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.row .name { font-weight: 600; font-size: 17px; }
+.row .meta { font-size: 14px; color: var(--ink-soft); }
+.markcell { text-align: center; }
+.mark-sm {
+  display: inline-block;
+  font-family: var(--font-hand);
+  font-weight: 700;
+  font-size: 40px;
+  line-height: 1;
+  color: var(--pen);
+  transform: rotate(-8deg);
+}
+.mark-empty { color: var(--line); font-size: 22px; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.btn {
+  font: 600 16px var(--font-body);
+  background: var(--ink);
+  color: var(--on-ink);
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+  padding: 11px 18px;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn.ghost { background: transparent; color: var(--ink); }
+.btn[disabled] { opacity: 0.4; cursor: not-allowed; transform: none; }
+.linkbtn {
+  font: 600 15px var(--font-body);
+  background: none; border: 0; color: var(--ink-soft);
+  cursor: pointer; padding: 6px 0; text-decoration: underline; text-underline-offset: 3px;
+}
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.howto { font-size: 15px; color: var(--ink-soft); display: flex; flex-direction: column; gap: 4px; }
+.howto strong { color: var(--ink); }
+
+/* Station */
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.score { font-weight: 600; font-variant-numeric: tabular-nums; }
+.progress { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.progress span { display: block; height: 100%; background: var(--ink); transition: width 0.3s ease; }
+.steplabel { font-size: 14px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.sheet {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: clamp(18px, 4vw, 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.question { font-size: clamp(18px, 4.2vw, 21px); font-weight: 600; line-height: 1.35; }
+.opts { display: flex; flex-direction: column; gap: 10px; }
+.opt {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  width: 100%; text-align: left;
+  font: 500 16px/1.4 var(--font-body);
+  color: var(--ink);
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  padding: 13px 16px;
+  cursor: pointer;
+}
+.opt:hover:not([disabled]) { border-color: var(--ink-soft); }
+.opt[disabled] { cursor: default; }
+.opt .tag { font-size: 13px; font-weight: 600; white-space: nowrap; }
+.opt.correct { border-color: var(--good); background: var(--good-tint); }
+.opt.correct .tag { color: var(--good); }
+.opt.wrong { border-color: var(--pen); background: var(--pen-tint); }
+.opt.wrong .tag { color: var(--pen); }
+.feedback { font-size: 16px; padding: 12px 14px; border-radius: 8px; border-left: 4px solid var(--good); background: var(--good-tint); }
+.feedback.bad { border-left-color: var(--pen); background: var(--pen-tint); }
+.feedback strong { display: block; margin-bottom: 2px; }
+
+.itemcard {
+  border: 1.5px dashed var(--ink-soft);
+  border-radius: 10px;
+  padding: 18px;
+  text-align: center;
+  font-size: clamp(18px, 4.5vw, 22px);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.bins { display: grid; gap: 10px; }
+.bins-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.bins-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.bin {
+  display: flex; flex-direction: column; gap: 2px; align-items: flex-start;
+  text-align: left;
+  font: 600 16px var(--font-body);
+  color: var(--ink);
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  cursor: pointer;
+  min-width: 0;
+}
+.bin small { font-weight: 400; font-size: 14px; color: var(--ink-soft); line-height: 1.3; }
+.bin:hover:not([disabled]) { border-color: var(--ink-soft); }
+.bin[disabled] { cursor: default; }
+.bin.correct { border-color: var(--good); background: var(--good-tint); }
+.bin.wrong { border-color: var(--pen); background: var(--pen-tint); }
+
+.slots { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; counter-reset: slot; }
+.slot {
+  counter-increment: slot;
+  display: flex; align-items: center; gap: 12px;
+  min-height: 46px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1.5px dashed var(--line);
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+.slot::before {
+  content: counter(slot);
+  font-family: var(--font-display);
+  font-size: 15px;
+  width: 26px; height: 26px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+}
+.slot.filled { border-style: solid; border-color: var(--good); background: var(--good-tint); color: var(--ink); font-weight: 600; }
+.slot.filled::before { color: var(--good); }
+.pool { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  font: 600 15px var(--font-body);
+  color: var(--ink);
+  background: var(--card);
+  border: 1.5px solid var(--ink-soft);
+  border-radius: 999px;
+  padding: 9px 15px;
+  cursor: pointer;
+}
+.chip.wrong { border-color: var(--pen); color: var(--pen); animation: shake 0.35s ease; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Grade with red-pen ring */
+.grade { position: relative; width: 132px; height: 132px; display: grid; place-items: center; flex: none; }
+.grade svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.grade .ring { fill: none; stroke: var(--pen); stroke-width: 3.5; stroke-linecap: round; stroke-dasharray: 420; stroke-dashoffset: 0; animation: draw 0.9s ease-out; }
+.grade span { font-family: var(--font-hand); font-weight: 700; font-size: 84px; line-height: 1; color: var(--pen); transform: rotate(-8deg); }
+@keyframes draw { from { stroke-dashoffset: 420; } to { stroke-dashoffset: 0; } }
+.result { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+.result-text { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1 1 260px; }
+.handnote { font-family: var(--font-hand); font-weight: 600; font-size: 28px; line-height: 1.15; color: var(--pen); }
+
+/* Final ledger */
+.cert-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.cert-table th, .cert-table td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.cert-table th { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; border-bottom: 2px solid var(--ink); }
+.cert-table td:last-child, .cert-table th:last-child { text-align: center; width: 80px; }
+.cert-foot { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 14px; color: var(--ink-soft); }
+
+@media (max-width: 560px) {
+  .page { padding-left: 22px; }
+  .page::before { left: 4px; }
+  .row { grid-template-columns: 24px minmax(0, 1fr) 52px; }
+  .row .btn { grid-column: 2 / -1; justify-self: start; }
+  .bins-3 { grid-template-columns: 1fr; }
+  .grade { width: 112px; height: 112px; }
+  .grade span { font-size: 70px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+
+<main class="page" id="app" aria-live="polite"></main>
+
+<script>
+(function () {
+  "use strict";
+
+  var Q_PTS = 10, ITEM_PTS = 5, STEP_PTS = 5;
+  var STORE_KEY = "dosug-marathon-v1";
+
+  var STATIONS = [
+    {
+      id: "s1", lecture: "Лекция 1", title: "Направления работы педагога-организатора",
+      meta: "4 вопроса · дела по тематическим субботам",
+      quiz: [
+        { q: "Какая статья Кодекса Республики Беларусь об образовании называет 12 основных составляющих воспитания?",
+          a: "Статья 17", wrong: ["Статья 150", "Статья 31", "Статья 95"],
+          explain: "Статья 17 «Воспитание в системе образования» задаёт цель, задачи и составляющие воспитания. Статья 150 — о шестидневной неделе и шестом школьном дне." },
+        { q: "Какая составляющая воспитания прямо посвящена досугу?",
+          a: "Воспитание культуры быта и досуга", wrong: ["Эстетическое воспитание", "Воспитание культуры здорового образа жизни", "Трудовое и профессиональное воспитание"],
+          explain: "Она формирует ценностное отношение к материальному окружению и умение целесообразно и эффективно использовать свободное время." },
+        { q: "Кому подчиняется педагог-организатор в школе?",
+          a: "Заместителю директора по воспитательной работе", wrong: ["Классному руководителю", "Председателю совета учащихся", "Педагогу-психологу"],
+          explain: "Педагог-организатор отвечает за досуговое пространство всей школы и работает в команде под руководством заместителя директора по воспитательной работе." },
+        { q: "Какой документ задаёт задачи воспитания на нынешнюю пятилетку?",
+          a: "Программа непрерывного воспитания детей и учащейся молодёжи на 2026–2030 гг.", wrong: ["Концепция непрерывного воспитания 2015 года", "Закон № 305-З о детских и молодёжных объединениях", "Выпуск 28 ЕКСД"],
+          explain: "Программа утверждена постановлением Министерства образования от 04.11.2025 № 192. Среди её задач — повышение воспитательного потенциала шестого школьного дня." }
+      ],
+      game: {
+        type: "bins", title: "Разложите дела по тематическим субботам",
+        hint: "Нажмите на субботу, к которой относится дело.",
+        bins: [
+          { id: "b1", label: "1-я суббота", sub: "Гражданское, патриотическое, духовно-нравственное" },
+          { id: "b2", label: "2-я суббота", sub: "Здоровый образ жизни" },
+          { id: "b3", label: "3-я суббота", sub: "Труд и профориентация" },
+          { id: "b4", label: "4-я суббота", sub: "Взаимодействие с семьёй" }
+        ],
+        items: [
+          { t: "Экскурсия в школьный музей", b: "b1" },
+          { t: "Акция «Беларусь помнит»", b: "b1" },
+          { t: "«Урок чемпиона» с призёром первенства Беларуси", b: "b2" },
+          { t: "Туристический поход класса", b: "b2" },
+          { t: "«Профессиональная суббота» в колледже", b: "b3" },
+          { t: "Экскурсия на предприятие района", b: "b3" },
+          { t: "Семейный квест для родителей и детей", b: "b4" },
+          { t: "Выставка семейного творчества", b: "b4" }
+        ]
+      }
+    },
+    {
+      id: "s2", lecture: "Лекция 2", title: "Технология культурно-досуговой деятельности",
+      meta: "4 вопроса · стадии КТД по порядку",
+      quiz: [
+        { q: "Какой признак технологии главный и отличает её от методики?",
+          a: "Воспроизводимость", wrong: ["Зрелищность", "Новизна формы", "Большой охват участников"],
+          explain: "Технология — это алгоритм, который другой педагог может повторить и получить сопоставимый результат." },
+        { q: "Кто разработал технологию коллективного творческого дела?",
+          a: "И. П. Иванов", wrong: ["Г. К. Селевко", "А. Д. Жарков", "Т. Г. Киселёва"],
+          explain: "Коллективное творческое дело — технология И. П. Иванова: дело коллективное, творческое и полезное для людей." },
+        { q: "Как называется временная группа из представителей микрогрупп, которая руководит подготовкой КТД?",
+          a: "Совет дела", wrong: ["Совет учащихся", "Пионерская дружина", "Родительский комитет"],
+          explain: "Состав совета дела меняется от дела к делу, поэтому каждый учащийся успевает побыть организатором." },
+        { q: "Что такое квест?",
+          a: "Командное прохождение станций с заданиями внутри общего сюжета", wrong: ["Свободный обмен книгами через полку в общественном месте", "Короткая заранее подготовленная массовая акция", "Интеллектуальная игра команд на скорость ответа"],
+          explain: "Остальные варианты описывают буккроссинг, флешмоб и брейн-ринг." }
+      ],
+      game: {
+        type: "order", title: "Расставьте стадии КТД по порядку",
+        hint: "Нажимайте стадии по очереди — от первой к последней.",
+        steps: ["Предварительная работа", "Коллективное планирование", "Коллективная подготовка", "Проведение дела", "Коллективное подведение итогов", "Ближайшее последействие"]
+      }
+    },
+    {
+      id: "s3", lecture: "Лекция 3", title: "Содержание, формы, средства и методы",
+      meta: "4 вопроса · форма, метод или средство",
+      quiz: [
+        { q: "Какой уровень досуга по А. Д. Жаркову самый высокий?",
+          a: "Творчество", wrong: ["Праздник", "Самообразование", "Развлечение"],
+          explain: "Пять уровней от простого к сложному: отдых, развлечение, праздник, самообразование, творчество." },
+        { q: "С чего правильно начинать конструирование досугового дела?",
+          a: "С цели", wrong: ["С выбора формы", "С подбора средств", "С поиска ведущего"],
+          explain: "Порядок строгий: цель — содержание — форма — методы — средства. Форма служит цели, а не наоборот." },
+        { q: "Вынос Государственного флага на торжественной линейке — пример какого метода?",
+          a: "Ритуализации", wrong: ["Импровизации", "Рекреации", "Иллюстрирования"],
+          explain: "Ритуализация — повторяющиеся символические действия: вынос флага, приём в пионеры, «последний звонок»." },
+        { q: "IX класс говорит: «Субботние мероприятия — для малышей». Что лучше предложить?",
+          a: "Квест или КТД, которые готовят сами учащиеся", wrong: ["Утренник с ведущими-педагогами", "Сказочное путешествие", "Конкурс рисунков на асфальте"],
+          explain: "Подросткам важны признание сверстников, соревнование и самостоятельность." }
+      ],
+      game: {
+        type: "bins", title: "Форма, метод или средство?",
+        hint: "Определите, к чему относится термин.",
+        bins: [
+          { id: "f", label: "Форма", sub: "в каком виде" },
+          { id: "m", label: "Метод", sub: "каким способом" },
+          { id: "s", label: "Средство", sub: "с помощью чего" }
+        ],
+        items: [
+          { t: "Квест", b: "f" },
+          { t: "Брейн-ринг", b: "f" },
+          { t: "Турслёт", b: "f" },
+          { t: "Состязательность", b: "m" },
+          { t: "Иллюстрирование", b: "m" },
+          { t: "Импровизация", b: "m" },
+          { t: "Проектор и экран", b: "s" },
+          { t: "Материалы школьного музея", b: "s" },
+          { t: "Сценический костюм", b: "s" }
+        ]
+      }
+    },
+    {
+      id: "s4", lecture: "Лекция 4", title: "Принципы и функции КДД",
+      meta: "6 кейсов из школьной жизни",
+      quiz: [
+        { q: "Администрация требует, чтобы на вечер пришли все старшеклассники «для галочки». Какой принцип нарушается?",
+          a: "Добровольность", wrong: ["Безопасность", "Общедоступность", "Опора на традиции"],
+          explain: "Подневольный досуг перестаёт быть досугом. Решение — выбор: несколько площадок и разные роли." },
+        { q: "Ученик с невысокой успеваемостью стал звездой школьного театра. Какая функция досуга сработала?",
+          a: "Компенсаторная", wrong: ["Профилактическая", "Интегративная", "Рекреативная"],
+          explain: "Компенсаторная функция восполняет то, чего не хватает в учёбе: успеха, эмоций, движения." },
+        { q: "Дети и родители выступают одной командой на семейной спартакиаде. Какая функция объединяет школу и семью?",
+          a: "Интегративная", wrong: ["Познавательная", "Компенсаторная", "Культуротворческая"],
+          explain: "Интегративная функция объединяет школу, семью и социум." },
+        { q: "Учащихся, нуждающихся в особом педагогическом внимании, вовлекают в субботние объединения по интересам. Какая это функция?",
+          a: "Профилактическая", wrong: ["Развлекательная", "Познавательная", "Культуротворческая"],
+          explain: "Занятость в объединениях по интересам помогает предупредить асоциальное поведение." },
+        { q: "Школа участвует в фестивале «Нашчадкі традыцый» и проводит Гуканне вясны. Что здесь проявляется?",
+          a: "Принцип опоры на традиции и культуротворческая функция", wrong: ["Принцип рекреативности и компенсаторная функция", "Принцип добровольности и профилактическая функция", "Принцип безопасности и коммуникативная функция"],
+          explain: "Досуг сохраняет и передаёт культурные традиции белорусского народа." },
+        { q: "Какое требование статьи 17 Кодекса становится принципом целенаправленности?",
+          a: "Соответствие содержания, форм и методов цели и задачам воспитания", wrong: ["Системность и единство педагогических требований", "Преемственность и непрерывность воспитания", "Включение в социально значимую деятельность"],
+          explain: "Каждое дело начинается с цели, а форма выбирается под цель." }
+      ],
+      game: null
+    }
+  ];
+
+  var S = { view: "home", name: "", results: {}, run: null, last: null };
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        var d = JSON.parse(raw);
+        if (d && typeof d === "object") {
+          S.name = typeof d.name === "string" ? d.name : "";
+          S.results = d.results && typeof d.results === "object" ? d.results : {};
+        }
+      }
+    } catch (e) { /* storage unavailable */ }
+  }
+  function save() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify({ name: S.name, results: S.results })); } catch (e) { /* ignore */ }
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function stationMax(st) {
+    var m = st.quiz.length * Q_PTS;
+    if (st.game && st.game.type === "bins") m += st.game.items.length * ITEM_PTS;
+    if (st.game && st.game.type === "order") m += st.game.steps.length * STEP_PTS;
+    return m;
+  }
+  function stepsTotal(st) { return st.quiz.length + (st.game ? 1 : 0); }
+  function toMark(points, max) { return Math.max(1, Math.min(10, Math.round(points / max * 10))); }
+  function markWord(m) {
+    if (m >= 10) return "Блестяще! Хоть сейчас веди этот курс сам.";
+    if (m >= 8) return "Очень хорошо — почти без ошибок.";
+    if (m >= 6) return "Хорошо. Стоит перечитать пару разделов лекции.";
+    if (m >= 4) return "Есть пробелы: вернитесь к тексту лекции и попробуйте снова.";
+    return "Перечитайте лекцию и пройдите станцию ещё раз.";
+  }
+  function rankTitle(avg) {
+    var r = Math.round(avg);
+    if (r >= 9) return "Педагог-организатор высшей категории";
+    if (r >= 7) return "Педагог-организатор первой категории";
+    if (r >= 5) return "Педагог-организатор второй категории";
+    return "Стажёр: перечитайте лекции и попробуйте снова";
+  }
+  function doneCount() {
+    var n = 0;
+    STATIONS.forEach(function (st) { if (S.results[st.id]) n++; });
+    return n;
+  }
+
+  var RING = "M66 14 C 96 16, 112 40, 108 68 C 104 96, 80 114, 54 110 C 26 106, 10 82, 14 56 C 18 30, 40 12, 72 16";
+  function gradeHTML(m) {
+    return '<div class="grade" role="img" aria-label="Отметка ' + m + ' из 10"><svg viewBox="0 0 120 120" aria-hidden="true"><path class="ring" d="' + RING + '"/></svg><span aria-hidden="true">' + m + '</span></div>';
+  }
+
+  /* ---------- Views ---------- */
+
+  function viewHome() {
+    var done = doneCount();
+    var rows = STATIONS.map(function (st, i) {
+      var r = S.results[st.id];
+      var mark = r ? '<span class="mark-sm" aria-label="Отметка ' + r.mark + '">' + r.mark + '</span>' : '<span class="mark-empty" aria-label="Нет отметки">—</span>';
+      return '<div class="row">' +
+        '<span class="num">' + (i + 1) + '</span>' +
+        '<div class="topic"><span class="lec">' + esc(st.lecture) + '</span><span class="name">' + esc(st.title) + '</span><span class="meta">' + esc(st.meta) + '</span></div>' +
+        '<div class="markcell">' + mark + '</div>' +
+        '<button class="btn' + (r ? ' ghost' : '') + '" data-action="start" data-i="' + i + '">' + (r ? 'Пройти снова' : 'Начать') + '</button>' +
+      '</div>';
+    }).join("");
+
+    return '' +
+      '<header class="hero">' +
+        '<p class="eyebrow">Игра к курсу лекций · 2026/2027 учебный год</p>' +
+        '<h1>Досуговый марафон</h1>' +
+        '<p class="lede">Четыре станции — четыре лекции о культурно-досуговой деятельности в белорусской школе. За каждую станцию вы получите отметку по десятибалльной шкале, как в школьном дневнике.</p>' +
+      '</header>' +
+      '<div class="field"><label for="player-name">Имя для итоговой ведомости</label>' +
+        '<input id="player-name" type="text" autocomplete="name" maxlength="60" placeholder="Например, Анна Ковалёва" value="' + esc(S.name) + '"></div>' +
+      '<section class="ledger" aria-label="Ведомость станций">' +
+        '<div class="ledger-head"><h2>Ведомость</h2><span>Пройдено ' + done + ' из ' + STATIONS.length + '</span></div>' +
+        rows +
+      '</section>' +
+      '<div class="actions">' +
+        '<button class="btn" data-action="final"' + (done === 0 ? ' disabled' : '') + '>Итоговая ведомость</button>' +
+        (done > 0 ? '<button class="linkbtn" data-action="reset">Стереть результаты</button>' : '') +
+      '</div>' +
+      '<div class="howto">' +
+        '<p><strong>Как играть.</strong> Станции можно проходить в любом порядке.</p>' +
+        '<p>Верный ответ на вопрос — 10 баллов, верно разложенная карточка или стадия — 5 баллов.</p>' +
+        '<p>После каждого ответа появится короткое пояснение из лекции.</p>' +
+      '</div>';
+  }
+
+  function topbar(st, run) {
+    var total = stepsTotal(st);
+    var frac = run.step;
+    var g = st.game;
+    if (run.step >= st.quiz.length && g) {
+      var part = g.type === "bins" ? run.item / g.items.length : run.placed.length / g.steps.length;
+      frac = st.quiz.length + part;
+    }
+    var pct = Math.round(frac / total * 100);
+    return '' +
+      '<div class="topbar">' +
+        '<button class="linkbtn" data-action="home">← К ведомости</button>' +
+        '<span class="score">Баллы: ' + run.points + ' из ' + stationMax(st) + '</span>' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:10px">' +
+        '<p class="eyebrow">' + esc(st.lecture) + '</p>' +
+        '<h2>' + esc(st.title) + '</h2>' +
+        '<div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><span style="width:' + pct + '%"></span></div>' +
+      '</div>';
+  }
+
+  function viewQuiz(st, run) {
+    var item = st.quiz[run.step];
+    var opts = run.opts[run.step];
+    var answered = run.picked !== null;
+    var optsHTML = opts.map(function (o, k) {
+      var cls = "opt", tag = "";
+      if (answered) {
+        if (o === item.a) { cls += " correct"; tag = "Верно"; }
+        else if (o === run.picked) { cls += " wrong"; tag = "Ваш ответ"; }
+      }
+      return '<button class="' + cls + '" data-action="pick" data-k="' + k + '"' + (answered ? ' disabled' : '') + '><span>' + esc(o) + '</span>' + (tag ? '<span class="tag">' + tag + '</span>' : '') + '</button>';
+    }).join("");
+    var fb = "";
+    if (answered) {
+      var ok = run.picked === item.a;
+      fb = '<div class="feedback' + (ok ? '' : ' bad') + '"><strong>' + (ok ? 'Верно, +10 баллов' : 'Неверно') + '</strong>' + esc(item.explain) + '</div>' +
+        '<div class="actions"><button class="btn" id="next-btn" data-action="next">Дальше</button></div>';
+    }
+    var label = st.id === "s4" ? "Кейс" : "Вопрос";
+    return topbar(st, run) +
+      '<p class="steplabel">' + label + ' ' + (run.step + 1) + ' из ' + st.quiz.length + '</p>' +
+      '<section class="sheet"><p class="question">' + esc(item.q) + '</p><div class="opts">' + optsHTML + '</div>' + fb + '</section>';
+  }
+
+  function viewBins(st, run) {
+    var g = st.game;
+    var item = g.items[run.items[run.item]];
+    var answered = run.binPicked !== null;
+    var binsHTML = g.bins.map(function (b) {
+      var cls = "bin";
+      if (answered) {
+        if (b.id === item.b) cls += " correct";
+        else if (b.id === run.binPicked) cls += " wrong";
+      }
+      return '<button class="' + cls + '" data-action="bin" data-b="' + b.id + '"' + (answered ? ' disabled' : '') + '>' + esc(b.label) + '<small>' + esc(b.sub) + '</small></button>';
+    }).join("");
+    var fb = "";
+    if (answered) {
+      var ok = run.binPicked === item.b;
+      var right = g.bins.filter(function (b) { return b.id === item.b; })[0];
+      fb = '<div class="feedback' + (ok ? '' : ' bad') + '"><strong>' + (ok ? 'Верно, +5 баллов' : 'Неверно') + '</strong>' +
+        (ok ? 'Карточка на своём месте.' : 'Правильный ответ: ' + esc(right.label) + ' — ' + esc(right.sub.toLowerCase()) + '.') + '</div>' +
+        '<div class="actions"><button class="btn" id="next-btn" data-action="nextitem">' + (run.item + 1 < g.items.length ? 'Следующая карточка' : 'Завершить станцию') + '</button></div>';
+    }
+    return topbar(st, run) +
+      '<p class="steplabel">' + esc(g.title) + ' · карточка ' + (run.item + 1) + ' из ' + g.items.length + '</p>' +
+      '<section class="sheet">' +
+        '<p class="itemcard">' + esc(item.t) + '</p>' +
+        '<p class="steplabel">' + esc(g.hint) + '</p>' +
+        '<div class="bins bins-' + g.bins.length + '">' + binsHTML + '</div>' + fb +
+      '</section>';
+  }
+
+  function viewOrder(st, run) {
+    var g = st.game;
+    var slots = g.steps.map(function (s, k) {
+      var filled = k < run.placed.length;
+      return '<li class="slot' + (filled ? ' filled' : '') + '">' + (filled ? esc(g.steps[run.placed[k]]) : 'Стадия ' + (k + 1) + '…') + '</li>';
+    }).join("");
+    var pool = run.pool.filter(function (k) { return run.placed.indexOf(k) < 0; }).map(function (k) {
+      return '<button class="chip' + (run.wrongTap === k ? ' wrong' : '') + '" data-action="place" data-k="' + k + '">' + esc(g.steps[k]) + '</button>';
+    }).join("");
+    var complete = run.placed.length === g.steps.length;
+    var fb = "";
+    if (complete) {
+      fb = '<div class="feedback"><strong>Цикл собран</strong>Последействие замыкает круг: предложения детей становятся замыслом следующего дела.</div>' +
+        '<div class="actions"><button class="btn" id="next-btn" data-action="finish">Завершить станцию</button></div>';
+    } else if (run.wrongTap !== null) {
+      fb = '<div class="feedback bad"><strong>Не эта стадия</strong>Подумайте, что должно произойти раньше. За эту позицию баллы уже не начислятся.</div>';
+    }
+    return topbar(st, run) +
+      '<p class="steplabel">' + esc(g.title) + '</p>' +
+      '<section class="sheet">' +
+        '<p class="steplabel">' + esc(g.hint) + '</p>' +
+        '<ol class="slots">' + slots + '</ol>' +
+        (complete ? '' : '<div class="pool">' + pool + '</div>') + fb +
+      '</section>';
+  }
+
+  function viewResult() {
+    var L = S.last, st = STATIONS[L.i];
+    var next = -1;
+    for (var k = 1; k <= STATIONS.length; k++) {
+      var c = (L.i + k) % STATIONS.length;
+      if (!S.results[STATIONS[c].id]) { next = c; break; }
+    }
+    return '' +
+      '<p class="eyebrow">' + esc(st.lecture) + ' · станция пройдена</p>' +
+      '<h2>' + esc(st.title) + '</h2>' +
+      '<section class="sheet">' +
+        '<div class="result">' + gradeHTML(L.mark) +
+          '<div class="result-text">' +
+            '<p class="handnote">' + esc(markWord(L.mark)) + '</p>' +
+            '<p class="steplabel">Набрано ' + L.points + ' из ' + L.max + ' баллов</p>' +
+          '</div>' +
+        '</div>' +
+      '</section>' +
+      '<div class="actions">' +
+        (next >= 0 ? '<button class="btn" data-action="start" data-i="' + next + '">Следующая станция: ' + esc(STATIONS[next].lecture) + '</button>'
+                   : '<button class="btn" data-action="final">Итоговая ведомость</button>') +
+        '<button class="btn ghost" data-action="home">К ведомости</button>' +
+      '</div>';
+  }
+
+  function viewFinal() {
+    var marks = [];
+    var rows = STATIONS.map(function (st) {
+      var r = S.results[st.id];
+      if (r) marks.push(r.mark);
+      return '<tr><td>' + esc(st.lecture) + '</td><td>' + esc(st.title) + '</td><td>' +
+        (r ? '<span class="mark-sm">' + r.mark + '</span>' : '<span class="mark-empty">—</span>') + '</td></tr>';
+    }).join("");
+    var avg = marks.length ? marks.reduce(function (a, b) { return a + b; }, 0) / marks.length : 0;
+    var avgText = avg.toFixed(1).replace(".", ",");
+    var all = marks.length === STATIONS.length;
+    var date = "";
+    try { date = new Date().toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" }); } catch (e) { date = ""; }
+    return '' +
+      '<div class="topbar"><button class="linkbtn" data-action="home">← К ведомости</button></div>' +
+      '<section class="sheet" aria-label="Итоговая ведомость">' +
+        '<p class="eyebrow">Итоговая ведомость</p>' +
+        '<h1>' + esc(S.name.trim() || "Участник марафона") + '</h1>' +
+        '<p class="steplabel">Курс «Культурно-досуговая деятельность в белорусской школе»</p>' +
+        '<div style="overflow-x:auto"><table class="cert-table"><thead><tr><th>Лекция</th><th>Тема</th><th>Отметка</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+        '<div class="result">' + gradeHTML(Math.round(avg) || 1) +
+          '<div class="result-text">' +
+            '<p class="steplabel">Средний балл: ' + avgText + (all ? '' : ' (пройдено ' + marks.length + ' из ' + STATIONS.length + ')') + '</p>' +
+            '<p class="handnote">' + esc(all ? rankTitle(avg) : 'Пройдите все четыре станции, чтобы получить звание') + '</p>' +
+          '</div>' +
+        '</div>' +
+        '<div class="cert-foot"><span>Досуговый марафон</span><span>' + esc(date) + '</span></div>' +
+      '</section>' +
+      '<div class="actions">' +
+        '<button class="btn" data-action="restart">Пройти марафон заново</button>' +
+        '<button class="btn ghost" data-action="home">К ведомости</button>' +
+      '</div>';
+  }
+
+  /* ---------- Render ---------- */
+
+  var app = document.getElementById("app");
+  function render(focusId) {
+    var html;
+    if (S.view === "station" && S.run) {
+      var st = STATIONS[S.run.st];
+      if (S.run.step < st.quiz.length) html = viewQuiz(st, S.run);
+      else if (st.game.type === "bins") html = viewBins(st, S.run);
+      else html = viewOrder(st, S.run);
+    } else if (S.view === "result" && S.last) {
+      html = viewResult();
+    } else if (S.view === "final") {
+      html = viewFinal();
+    } else {
+      S.view = "home";
+      html = viewHome();
+    }
+    app.innerHTML = html;
+    if (focusId) {
+      var el = document.getElementById(focusId);
+      if (el) { try { el.focus({ preventScroll: false }); } catch (e) { el.focus(); } }
+    }
+  }
+  function top() { try { window.scrollTo(0, 0); } catch (e) { /* ignore */ } }
+
+  /* ---------- Actions ---------- */
+
+  function startStation(i) {
+    var st = STATIONS[i];
+    var g = st.game;
+    S.run = {
+      st: i, step: 0, points: 0,
+      opts: st.quiz.map(function (q) { return shuffle([q.a].concat(q.wrong)); }),
+      picked: null,
+      items: g && g.type === "bins" ? shuffle(g.items.map(function (_, k) { return k; })) : [],
+      item: 0, binPicked: null,
+      pool: g && g.type === "order" ? shuffle(g.steps.map(function (_, k) { return k; })) : [],
+      placed: [], miss: false, wrongTap: null
+    };
+    S.view = "station";
+    render(); top();
+  }
+  function finishStation() {
+    var run = S.run, st = STATIONS[run.st];
+    var max = stationMax(st);
+    var mark = toMark(run.points, max);
+    S.results[st.id] = { points: run.points, max: max, mark: mark };
+    S.last = { i: run.st, points: run.points, max: max, mark: mark };
+    S.run = null;
+    S.view = "result";
+    save(); render(); top();
+  }
+
+  app.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-action]");
+    if (!b || b.disabled) return;
+    var a = b.getAttribute("data-action");
+    var run = S.run;
+    if (a === "start") { startStation(Number(b.getAttribute("data-i"))); return; }
+    if (a === "home") { S.view = "home"; render(); top(); return; }
+    if (a === "final") { S.view = "final"; render(); top(); return; }
+    if (a === "reset" || a === "restart") {
+      S.results = {}; S.last = null; S.run = null; save();
+      S.view = "home"; render(); top(); return;
+    }
+    if (!run) return;
+    var st = STATIONS[run.st];
+    if (a === "pick" && run.picked === null) {
+      var val = run.opts[run.step][Number(b.getAttribute("data-k"))];
+      run.picked = val;
+      if (val === st.quiz[run.step].a) run.points += Q_PTS;
+      render("next-btn");
+    } else if (a === "next") {
+      run.step++; run.picked = null;
+      if (run.step >= stepsTotal(st)) finishStation(); else { render(); top(); }
+    } else if (a === "bin" && run.binPicked === null) {
+      var bid = b.getAttribute("data-b");
+      run.binPicked = bid;
+      if (bid === st.game.items[run.items[run.item]].b) run.points += ITEM_PTS;
+      render("next-btn");
+    } else if (a === "nextitem") {
+      run.item++; run.binPicked = null;
+      if (run.item >= st.game.items.length) finishStation(); else render();
+    } else if (a === "place") {
+      var k = Number(b.getAttribute("data-k"));
+      if (k === run.placed.length) {
+        run.placed.push(k);
+        if (!run.miss) run.points += STEP_PTS;
+        run.miss = false; run.wrongTap = null;
+        render(run.placed.length === st.game.steps.length ? "next-btn" : null);
+      } else {
+        run.miss = true; run.wrongTap = k;
+        render();
+      }
+    } else if (a === "finish") {
+      finishStation();
+    }
+  });
+
+  app.addEventListener("input", function (e) {
+    if (e.target && e.target.id === "player-name") { S.name = e.target.value; save(); }
+  });
+
+  function boot(data) {
+    if (data && data.S && typeof data.S === "object") { S = data.S; }
+    else { load(); }
+    render();
+  }
+  try { window.claude && window.claude.hot && window.claude.hot.snapshot && window.claude.hot.snapshot(function () { return { S: S }; }); } catch (e) { /* ignore */ }
+  if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(boot);
+  else boot((window.claude && window.claude.hot && window.claude.hot.data) || {});
+})();
+</script>
+
+</body></html>
