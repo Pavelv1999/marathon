@@ -1,6 +1,16 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Досуговый марафон: тесты по курсу культурно-досуговой деятельности. Результаты приходят преподавателю.">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
 <title>Досуговый марафон</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Golos+Text:wght@400;500;600&family=Unbounded:wght@500;700&display=swap">
 <style>
 /* Layout: one centred page of a squared school notebook with a red margin line at left; grades are written in a teacher's red pen on a 10-point scale */
@@ -301,37 +311,54 @@ h2 {
   .grade { width: 112px; height: 112px; }
   .grade span { font-size: 70px; }
 }
+.who { display: flex; flex-direction: column; gap: 10px; }
+.namegrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; max-width: 560px; }
+.namegrid .field { max-width: none; }
+.req { color: var(--pen); }
+input[aria-invalid="true"] { border-color: var(--pen); }
+.formerror { color: var(--pen); font-weight: 600; font-size: 15px; }
+.sendok { color: var(--good); font-weight: 600; }
+.sending { color: var(--ink-soft); }
+.senderr { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 8px; border-left: 4px solid var(--pen); background: var(--pen-tint); }
+@media (max-width: 560px) { .namegrid { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
 </style>
-
+</head>
+<body>
 <main class="page" id="app" aria-live="polite"></main>
 
 <script>
 (function () {
   "use strict";
 
-  var Q_PTS = 10, ITEM_PTS = 5, STEP_PTS = 5;
-  var STORE_KEY = "dosug-marathon-v1";
+  var Q_PTS = 2;
+  var STORE_KEY = "dosug-marathon-v3";
+  var MAIL_TO = "pasha_viarenich@mail.ru";
+  var MAIL_CC = "verenich_1975@mail.ru";
+  var MAIL_URL = "https://formsubmit.co/ajax/" + MAIL_TO;
 
   var STATIONS = [
     {
       id: "s1", lecture: "Лекция 1", title: "Направления работы педагога-организатора",
-      meta: "4 вопроса · дела по тематическим субботам",
+      meta: "5 вопросов · тренировка: дела по тематическим субботам",
       quiz: [
-        { q: "Какая статья Кодекса Республики Беларусь об образовании называет 12 основных составляющих воспитания?",
+        { q: "Какая статья Кодекса Республики Беларусь об образовании называет 14 основных составляющих воспитания?",
           a: "Статья 17", wrong: ["Статья 150", "Статья 31", "Статья 95"],
           explain: "Статья 17 «Воспитание в системе образования» задаёт цель, задачи и составляющие воспитания. Статья 150 — о шестидневной неделе и шестом школьном дне." },
-        { q: "Какая составляющая воспитания прямо посвящена досугу?",
-          a: "Воспитание культуры быта и досуга", wrong: ["Эстетическое воспитание", "Воспитание культуры здорового образа жизни", "Трудовое и профессиональное воспитание"],
-          explain: "Она формирует ценностное отношение к материальному окружению и умение целесообразно и эффективно использовать свободное время." },
+        { q: "Какая составляющая воспитания посвящена осознанию мужских и женских социальных ролей на основе традиционных ценностей?",
+          a: "Гендерное воспитание", wrong: ["Воспитание культуры быта и досуга", "Эстетическое воспитание", "Трудовое и профессиональное воспитание"],
+          explain: "Гендерное воспитание формирует представления о роли мужчин и женщин в соответствии с традиционными ценностями." },
         { q: "Кому подчиняется педагог-организатор в школе?",
           a: "Заместителю директора по воспитательной работе", wrong: ["Классному руководителю", "Председателю совета учащихся", "Педагогу-психологу"],
           explain: "Педагог-организатор отвечает за досуговое пространство всей школы и работает в команде под руководством заместителя директора по воспитательной работе." },
         { q: "Какой документ задаёт задачи воспитания на нынешнюю пятилетку?",
           a: "Программа непрерывного воспитания детей и учащейся молодёжи на 2026–2030 гг.", wrong: ["Концепция непрерывного воспитания 2015 года", "Закон № 305-З о детских и молодёжных объединениях", "Выпуск 28 ЕКСД"],
-          explain: "Программа утверждена постановлением Министерства образования от 04.11.2025 № 192. Среди её задач — повышение воспитательного потенциала шестого школьного дня." }
+          explain: "Программа утверждена постановлением Министерства образования от 04.11.2025 № 192. Среди её задач — повышение воспитательного потенциала шестого школьного дня." },
+        { q: "На что направлено духовно-нравственное воспитание?",
+          a: "На развитие таких качеств, как честность, милосердие, сострадание, совесть и уважение к старшим", wrong: ["На формирование чувства уважения к представителям других культур и национальностей", "На формирование ответственности за противоправные действия", "На обучение умению грамотно пользоваться информационными ресурсами"],
+          explain: "Остальные варианты относятся к другим составляющим: уважение к другим культурам — к поликультурному воспитанию, ответственность за противоправные действия — к правовой культуре, работа с информацией — к информационной культуре." }
       ],
       game: {
         type: "bins", title: "Разложите дела по тематическим субботам",
@@ -356,7 +383,7 @@ h2 {
     },
     {
       id: "s2", lecture: "Лекция 2", title: "Технология культурно-досуговой деятельности",
-      meta: "4 вопроса · стадии КТД по порядку",
+      meta: "5 вопросов · тренировка: стадии КТД по порядку",
       quiz: [
         { q: "Какой признак технологии главный и отличает её от методики?",
           a: "Воспроизводимость", wrong: ["Зрелищность", "Новизна формы", "Большой охват участников"],
@@ -369,7 +396,10 @@ h2 {
           explain: "Состав совета дела меняется от дела к делу, поэтому каждый учащийся успевает побыть организатором." },
         { q: "Что такое квест?",
           a: "Командное прохождение станций с заданиями внутри общего сюжета", wrong: ["Свободный обмен книгами через полку в общественном месте", "Короткая заранее подготовленная массовая акция", "Интеллектуальная игра команд на скорость ответа"],
-          explain: "Остальные варианты описывают буккроссинг, флешмоб и брейн-ринг." }
+          explain: "Остальные варианты описывают буккроссинг, флешмоб и брейн-ринг." },
+        { q: "Где в сценарии праздника планируют кульминацию?",
+          a: "Ближе к концу программы", wrong: ["В самом начале, чтобы сразу захватить внимание", "В середине программы", "Её не планируют: она возникает сама"],
+          explain: "Кульминация — эмоциональная вершина дела. По законам драматургии её планируют ближе к концу, перед финалом." }
       ],
       game: {
         type: "order", title: "Расставьте стадии КТД по порядку",
@@ -379,7 +409,7 @@ h2 {
     },
     {
       id: "s3", lecture: "Лекция 3", title: "Содержание, формы, средства и методы",
-      meta: "4 вопроса · форма, метод или средство",
+      meta: "5 вопросов · тренировка: форма, метод или средство",
       quiz: [
         { q: "Какой уровень досуга по А. Д. Жаркову самый высокий?",
           a: "Творчество", wrong: ["Праздник", "Самообразование", "Развлечение"],
@@ -392,7 +422,10 @@ h2 {
           explain: "Ритуализация — повторяющиеся символические действия: вынос флага, приём в пионеры, «последний звонок»." },
         { q: "IX класс говорит: «Субботние мероприятия — для малышей». Что лучше предложить?",
           a: "Квест или КТД, которые готовят сами учащиеся", wrong: ["Утренник с ведущими-педагогами", "Сказочное путешествие", "Конкурс рисунков на асфальте"],
-          explain: "Подросткам важны признание сверстников, соревнование и самостоятельность." }
+          explain: "Подросткам важны признание сверстников, соревнование и самостоятельность." },
+        { q: "Чем досуг отличается от свободного времени?",
+          a: "Досуг — часть свободного времени, которую человек занимает делом по собственному выбору", wrong: ["Досуг — время после уроков, отведённое на домашние задания", "Досуг — это всё внеучебное время", "Досуг — обязательные мероприятия шестого школьного дня"],
+          explain: "Свободное время остаётся после обязательных дел. Досуг — та его часть, которую человек сам заполняет отдыхом, общением, творчеством, самообразованием." }
       ],
       game: {
         type: "bins", title: "Форма, метод или средство?",
@@ -417,7 +450,7 @@ h2 {
     },
     {
       id: "s4", lecture: "Лекция 4", title: "Принципы и функции КДД",
-      meta: "6 кейсов из школьной жизни",
+      meta: "5 кейсов из школьной жизни",
       quiz: [
         { q: "Администрация требует, чтобы на вечер пришли все старшеклассники «для галочки». Какой принцип нарушается?",
           a: "Добровольность", wrong: ["Безопасность", "Общедоступность", "Опора на традиции"],
@@ -433,16 +466,13 @@ h2 {
           explain: "Занятость в объединениях по интересам помогает предупредить асоциальное поведение." },
         { q: "Школа участвует в фестивале «Нашчадкі традыцый» и проводит Гуканне вясны. Что здесь проявляется?",
           a: "Принцип опоры на традиции и культуротворческая функция", wrong: ["Принцип рекреативности и компенсаторная функция", "Принцип добровольности и профилактическая функция", "Принцип безопасности и коммуникативная функция"],
-          explain: "Досуг сохраняет и передаёт культурные традиции белорусского народа." },
-        { q: "Какое требование статьи 17 Кодекса становится принципом целенаправленности?",
-          a: "Соответствие содержания, форм и методов цели и задачам воспитания", wrong: ["Системность и единство педагогических требований", "Преемственность и непрерывность воспитания", "Включение в социально значимую деятельность"],
-          explain: "Каждое дело начинается с цели, а форма выбирается под цель." }
+          explain: "Досуг сохраняет и передаёт культурные традиции белорусского народа." }
       ],
       game: null
     }
   ];
 
-  var S = { view: "home", name: "", results: {}, run: null, last: null };
+  var S = { view: "home", firstName: "", lastName: "", results: {}, attempts: {}, run: null, last: null, pendingStation: -1, nameError: "" };
 
   function load() {
     try {
@@ -450,14 +480,16 @@ h2 {
       if (raw) {
         var d = JSON.parse(raw);
         if (d && typeof d === "object") {
-          S.name = typeof d.name === "string" ? d.name : "";
+          S.firstName = typeof d.firstName === "string" ? d.firstName : "";
+          S.lastName = typeof d.lastName === "string" ? d.lastName : "";
+          S.attempts = d.attempts && typeof d.attempts === "object" ? d.attempts : {};
           S.results = d.results && typeof d.results === "object" ? d.results : {};
         }
       }
     } catch (e) { /* storage unavailable */ }
   }
   function save() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify({ name: S.name, results: S.results })); } catch (e) { /* ignore */ }
+    try { localStorage.setItem(STORE_KEY, JSON.stringify({ firstName: S.firstName, lastName: S.lastName, results: S.results, attempts: S.attempts })); } catch (e) { /* ignore */ }
   }
 
   function esc(s) {
@@ -474,13 +506,11 @@ h2 {
     return a;
   }
   function stationMax(st) {
-    var m = st.quiz.length * Q_PTS;
-    if (st.game && st.game.type === "bins") m += st.game.items.length * ITEM_PTS;
-    if (st.game && st.game.type === "order") m += st.game.steps.length * STEP_PTS;
-    return m;
+    return st.quiz.length * Q_PTS;
   }
   function stepsTotal(st) { return st.quiz.length + (st.game ? 1 : 0); }
-  function toMark(points, max) { return Math.max(1, Math.min(10, Math.round(points / max * 10))); }
+  function toMark(points, max) { return Math.max(0, Math.min(10, Math.round(points / max * 10))); }
+  function gameTotal(g) { return g.type === "bins" ? g.items.length : g.steps.length; }
   function markWord(m) {
     if (m >= 10) return "Блестяще! Хоть сейчас веди этот курс сам.";
     if (m >= 8) return "Очень хорошо — почти без ошибок.";
@@ -499,6 +529,75 @@ h2 {
     var n = 0;
     STATIONS.forEach(function (st) { if (S.results[st.id]) n++; });
     return n;
+  }
+
+  var NAME_RE = /^[A-Za-zА-Яа-яЁёІіЎў'’ -]{2,40}$/;
+  function cleanName(v) { return String(v || "").replace(/\s+/g, " ").trim(); }
+  function nameValid(v) { return NAME_RE.test(cleanName(v)); }
+  function nameOk() { return nameValid(S.firstName) && nameValid(S.lastName); }
+  function fullName() { return cleanName(S.lastName) + " " + cleanName(S.firstName); }
+  function testLabel(st) { return "Тест " + st.id.slice(1); }
+  function nameFields() {
+    var badLast = S.nameError && !nameValid(S.lastName);
+    var badFirst = S.nameError && !nameValid(S.firstName);
+    return '<div class="namegrid">' +
+        '<div class="field"><label for="last-name">Фамилия <span class="req">*</span></label>' +
+          '<input id="last-name" type="text" autocomplete="family-name" maxlength="40" required' + (badLast ? ' aria-invalid="true"' : '') + ' value="' + esc(S.lastName) + '"></div>' +
+        '<div class="field"><label for="first-name">Имя <span class="req">*</span></label>' +
+          '<input id="first-name" type="text" autocomplete="given-name" maxlength="40" required' + (badFirst ? ' aria-invalid="true"' : '') + ' value="' + esc(S.firstName) + '"></div>' +
+      '</div>' +
+      (S.nameError ? '<p class="formerror" role="alert">' + esc(S.nameError) + '</p>' : '');
+  }
+
+  function buildReport(st, run, mark, game, attempt) {
+    var okCount = run.answers.filter(function (a) { return a.ok; }).length;
+    var when = "";
+    try { when = new Date().toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }); } catch (e) { when = ""; }
+    var d = {};
+    d._subject = "Досуговый марафон · " + testLabel(st) + " · " + fullName() + " · отметка " + mark + " из 10";
+    d._template = "table";
+    d._captcha = "false";
+    d._cc = MAIL_CC;
+    d["Ученик"] = fullName();
+    d["Тест"] = testLabel(st) + ". " + st.title;
+    d["ИТОГ"] = run.points + " из " + stationMax(st) + " баллов — отметка " + mark + " из 10";
+    d["Верных ответов"] = okCount + " из " + st.quiz.length;
+    d["Попытка"] = String(attempt);
+    d["Дата и время"] = when;
+    run.answers.forEach(function (a, i) {
+      d["Вопрос " + (i + 1)] = (a.ok ? "✅ ВЕРНО (+" + Q_PTS + " балла). " : "❌ ОШИБКА (0 баллов). ") +
+        "Вопрос: " + a.q + " | Ответ ученика: «" + a.picked + "»" +
+        (a.ok ? "" : " | Правильный ответ: «" + a.correct + "»");
+    });
+    if (game) d["Тренировка (на отметку не влияет)"] = "верно " + game.ok + " из " + game.total;
+    return d;
+  }
+
+  function sendLast() {
+    var L = S.last;
+    if (!L || !L.report) return;
+    L.send = "sending";
+    if (S.view === "result") render();
+    var finished = false;
+    function finish(state) {
+      if (finished) return;
+      finished = true;
+      L.send = state;
+      if (S.view === "result") render();
+    }
+    var timer = setTimeout(function () { finish("error"); }, 20000);
+    try {
+      fetch(MAIL_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(L.report)
+      }).then(function (r) {
+        return r.json().catch(function () { return { success: r.ok ? "true" : "false" }; });
+      }).then(function (j) {
+        clearTimeout(timer);
+        finish(j && String(j.success) === "true" ? "ok" : "error");
+      }).catch(function () { clearTimeout(timer); finish("error"); });
+    } catch (e) { clearTimeout(timer); finish("error"); }
   }
 
   var RING = "M66 14 C 96 16, 112 40, 108 68 C 104 96, 80 114, 54 110 C 26 106, 10 82, 14 56 C 18 30, 40 12, 72 16";
@@ -525,10 +624,13 @@ h2 {
       '<header class="hero">' +
         '<p class="eyebrow">Игра к курсу лекций · 2026/2027 учебный год</p>' +
         '<h1>Досуговый марафон</h1>' +
-        '<p class="lede">Четыре станции — четыре лекции о культурно-досуговой деятельности в белорусской школе. За каждую станцию вы получите отметку по десятибалльной шкале, как в школьном дневнике.</p>' +
+        '<p class="lede">Четыре станции — четыре лекции о культурно-досуговой деятельности в школе. За каждую станцию вы получите отметку по десятибалльной шкале. Результат теста с разбором ответов автоматически уходит преподавателю.</p>' +
       '</header>' +
-      '<div class="field"><label for="player-name">Имя для итоговой ведомости</label>' +
-        '<input id="player-name" type="text" autocomplete="name" maxlength="60" placeholder="Например, Анна Ковалёва" value="' + esc(S.name) + '"></div>' +
+      '<section class="who" aria-label="Кто проходит тест">' +
+        '<h2>Кто проходит тест</h2>' +
+        '<p class="steplabel">Фамилия и имя обязательны: вместе с результатом они уйдут преподавателю.</p>' +
+        nameFields() +
+      '</section>' +
       '<section class="ledger" aria-label="Ведомость станций">' +
         '<div class="ledger-head"><h2>Ведомость</h2><span>Пройдено ' + done + ' из ' + STATIONS.length + '</span></div>' +
         rows +
@@ -539,9 +641,27 @@ h2 {
       '</div>' +
       '<div class="howto">' +
         '<p><strong>Как играть.</strong> Станции можно проходить в любом порядке.</p>' +
-        '<p>Верный ответ на вопрос — 10 баллов, верно разложенная карточка или стадия — 5 баллов.</p>' +
+        '<p>В каждой станции 5 вопросов, верный ответ — 2 балла. Пять верных ответов — отметка 10.</p>' +
+        '<p>После вопросов — тренировка с карточками. Она помогает закрепить тему и на отметку не влияет.</p>' +
         '<p>После каждого ответа появится короткое пояснение из лекции.</p>' +
+        '<p>Результат каждого теста с разбором ответов приходит преподавателю на почту.</p>' +
       '</div>';
+  }
+
+  function viewIntro() {
+    var st = STATIONS[S.pendingStation];
+    return '' +
+      '<header class="hero">' +
+        '<p class="eyebrow">Досуговый марафон · ' + esc(testLabel(st)) + '</p>' +
+        '<h1>' + esc(st.title) + '</h1>' +
+        '<p class="lede">' + st.quiz.length + ' вопросов, за каждый верный ответ — ' + Q_PTS + ' балла. Результат с разбором ответов уйдёт преподавателю.</p>' +
+      '</header>' +
+      '<section class="sheet">' +
+        '<h2>Представьтесь</h2>' +
+        nameFields() +
+        '<div class="actions"><button class="btn" data-action="begin">Начать тест</button></div>' +
+      '</section>' +
+      '<div class="actions"><button class="linkbtn" data-action="home">Все тесты марафона</button></div>';
   }
 
   function topbar(st, run) {
@@ -559,7 +679,7 @@ h2 {
         '<span class="score">Баллы: ' + run.points + ' из ' + stationMax(st) + '</span>' +
       '</div>' +
       '<div style="display:flex;flex-direction:column;gap:10px">' +
-        '<p class="eyebrow">' + esc(st.lecture) + '</p>' +
+        '<p class="eyebrow">' + esc(testLabel(st)) + ' · ' + esc(fullName()) + '</p>' +
         '<h2>' + esc(st.title) + '</h2>' +
         '<div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><span style="width:' + pct + '%"></span></div>' +
       '</div>';
@@ -580,7 +700,7 @@ h2 {
     var fb = "";
     if (answered) {
       var ok = run.picked === item.a;
-      fb = '<div class="feedback' + (ok ? '' : ' bad') + '"><strong>' + (ok ? 'Верно, +10 баллов' : 'Неверно') + '</strong>' + esc(item.explain) + '</div>' +
+      fb = '<div class="feedback' + (ok ? '' : ' bad') + '"><strong>' + (ok ? 'Верно, +2 балла' : 'Неверно') + '</strong>' + esc(item.explain) + '</div>' +
         '<div class="actions"><button class="btn" id="next-btn" data-action="next">Дальше</button></div>';
     }
     var label = st.id === "s4" ? "Кейс" : "Вопрос";
@@ -605,12 +725,12 @@ h2 {
     if (answered) {
       var ok = run.binPicked === item.b;
       var right = g.bins.filter(function (b) { return b.id === item.b; })[0];
-      fb = '<div class="feedback' + (ok ? '' : ' bad') + '"><strong>' + (ok ? 'Верно, +5 баллов' : 'Неверно') + '</strong>' +
+      fb = '<div class="feedback' + (ok ? '' : ' bad') + '"><strong>' + (ok ? 'Верно' : 'Неверно') + '</strong>' +
         (ok ? 'Карточка на своём месте.' : 'Правильный ответ: ' + esc(right.label) + ' — ' + esc(right.sub.toLowerCase()) + '.') + '</div>' +
         '<div class="actions"><button class="btn" id="next-btn" data-action="nextitem">' + (run.item + 1 < g.items.length ? 'Следующая карточка' : 'Завершить станцию') + '</button></div>';
     }
     return topbar(st, run) +
-      '<p class="steplabel">' + esc(g.title) + ' · карточка ' + (run.item + 1) + ' из ' + g.items.length + '</p>' +
+      '<p class="steplabel">Тренировка · ' + esc(g.title) + ' · карточка ' + (run.item + 1) + ' из ' + g.items.length + '</p>' +
       '<section class="sheet">' +
         '<p class="itemcard">' + esc(item.t) + '</p>' +
         '<p class="steplabel">' + esc(g.hint) + '</p>' +
@@ -633,15 +753,22 @@ h2 {
       fb = '<div class="feedback"><strong>Цикл собран</strong>Последействие замыкает круг: предложения детей становятся замыслом следующего дела.</div>' +
         '<div class="actions"><button class="btn" id="next-btn" data-action="finish">Завершить станцию</button></div>';
     } else if (run.wrongTap !== null) {
-      fb = '<div class="feedback bad"><strong>Не эта стадия</strong>Подумайте, что должно произойти раньше. За эту позицию баллы уже не начислятся.</div>';
+      fb = '<div class="feedback bad"><strong>Не эта стадия</strong>Подумайте, что должно произойти раньше.</div>';
     }
     return topbar(st, run) +
-      '<p class="steplabel">' + esc(g.title) + '</p>' +
+      '<p class="steplabel">Тренировка · ' + esc(g.title) + '</p>' +
       '<section class="sheet">' +
         '<p class="steplabel">' + esc(g.hint) + '</p>' +
         '<ol class="slots">' + slots + '</ol>' +
         (complete ? '' : '<div class="pool">' + pool + '</div>') + fb +
       '</section>';
+  }
+
+  function sendStatus(L) {
+    if (L.send === "ok") return '<p class="sendok" role="status">✓ Результат отправлен преподавателю</p>';
+    if (L.send === "error") return '<div class="senderr" role="alert"><p>Не удалось отправить результат преподавателю. Проверьте интернет и нажмите кнопку ещё раз.</p>' +
+      '<button class="btn" data-action="resend">Отправить ещё раз</button></div>';
+    return '<p class="sending" role="status">Отправляем результат преподавателю…</p>';
   }
 
   function viewResult() {
@@ -652,18 +779,20 @@ h2 {
       if (!S.results[STATIONS[c].id]) { next = c; break; }
     }
     return '' +
-      '<p class="eyebrow">' + esc(st.lecture) + ' · станция пройдена</p>' +
+      '<p class="eyebrow">' + esc(testLabel(st)) + ' пройден · ' + esc(fullName()) + '</p>' +
       '<h2>' + esc(st.title) + '</h2>' +
       '<section class="sheet">' +
         '<div class="result">' + gradeHTML(L.mark) +
           '<div class="result-text">' +
             '<p class="handnote">' + esc(markWord(L.mark)) + '</p>' +
             '<p class="steplabel">Набрано ' + L.points + ' из ' + L.max + ' баллов</p>' +
+            (L.game ? '<p class="steplabel">Тренировка: верно ' + L.game.ok + ' из ' + L.game.total + '</p>' : '') +
           '</div>' +
         '</div>' +
+        sendStatus(L) +
       '</section>' +
       '<div class="actions">' +
-        (next >= 0 ? '<button class="btn" data-action="start" data-i="' + next + '">Следующая станция: ' + esc(STATIONS[next].lecture) + '</button>'
+        (next >= 0 ? '<button class="btn" data-action="start" data-i="' + next + '">Следующий тест: ' + esc(testLabel(STATIONS[next])) + '</button>'
                    : '<button class="btn" data-action="final">Итоговая ведомость</button>') +
         '<button class="btn ghost" data-action="home">К ведомости</button>' +
       '</div>';
@@ -686,10 +815,10 @@ h2 {
       '<div class="topbar"><button class="linkbtn" data-action="home">← К ведомости</button></div>' +
       '<section class="sheet" aria-label="Итоговая ведомость">' +
         '<p class="eyebrow">Итоговая ведомость</p>' +
-        '<h1>' + esc(S.name.trim() || "Участник марафона") + '</h1>' +
-        '<p class="steplabel">Курс «Культурно-досуговая деятельность в белорусской школе»</p>' +
+        '<h1>' + esc(nameOk() ? fullName() : "Участник марафона") + '</h1>' +
+        '<p class="steplabel">Курс «Культурно-досуговая деятельность в школе»</p>' +
         '<div style="overflow-x:auto"><table class="cert-table"><thead><tr><th>Лекция</th><th>Тема</th><th>Отметка</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
-        '<div class="result">' + gradeHTML(Math.round(avg) || 1) +
+        '<div class="result">' + gradeHTML(Math.round(avg)) +
           '<div class="result-text">' +
             '<p class="steplabel">Средний балл: ' + avgText + (all ? '' : ' (пройдено ' + marks.length + ' из ' + STATIONS.length + ')') + '</p>' +
             '<p class="handnote">' + esc(all ? rankTitle(avg) : 'Пройдите все четыре станции, чтобы получить звание') + '</p>' +
@@ -717,6 +846,8 @@ h2 {
       html = viewResult();
     } else if (S.view === "final") {
       html = viewFinal();
+    } else if (S.view === "intro" && S.pendingStation >= 0) {
+      html = viewIntro();
     } else {
       S.view = "home";
       html = viewHome();
@@ -741,20 +872,44 @@ h2 {
       items: g && g.type === "bins" ? shuffle(g.items.map(function (_, k) { return k; })) : [],
       item: 0, binPicked: null,
       pool: g && g.type === "order" ? shuffle(g.steps.map(function (_, k) { return k; })) : [],
-      placed: [], miss: false, wrongTap: null
+      placed: [], miss: false, wrongTap: null, gameOk: 0, answers: []
     };
     S.view = "station";
     render(); top();
   }
+  function requestStart(i) {
+    S.pendingStation = i;
+    S.nameError = "";
+    if (nameOk()) { startStation(i); return; }
+    S.view = "intro";
+    render(nameValid(S.lastName) ? "first-name" : "last-name"); top();
+  }
+  function begin() {
+    if (!nameOk()) {
+      S.nameError = "Введите фамилию и имя: только буквы, не меньше двух.";
+      render(nameValid(S.lastName) ? "first-name" : "last-name");
+      return;
+    }
+    S.nameError = "";
+    S.firstName = cleanName(S.firstName);
+    S.lastName = cleanName(S.lastName);
+    save();
+    startStation(S.pendingStation);
+  }
+
   function finishStation() {
     var run = S.run, st = STATIONS[run.st];
     var max = stationMax(st);
     var mark = toMark(run.points, max);
+    var game = st.game ? { ok: run.gameOk, total: gameTotal(st.game) } : null;
+    S.attempts[st.id] = (S.attempts[st.id] || 0) + 1;
     S.results[st.id] = { points: run.points, max: max, mark: mark };
-    S.last = { i: run.st, points: run.points, max: max, mark: mark };
+    S.last = { i: run.st, points: run.points, max: max, mark: mark, game: game,
+      report: buildReport(st, run, mark, game, S.attempts[st.id]), send: "sending" };
     S.run = null;
     S.view = "result";
     save(); render(); top();
+    sendLast();
   }
 
   app.addEventListener("click", function (e) {
@@ -762,7 +917,9 @@ h2 {
     if (!b || b.disabled) return;
     var a = b.getAttribute("data-action");
     var run = S.run;
-    if (a === "start") { startStation(Number(b.getAttribute("data-i"))); return; }
+    if (a === "start") { requestStart(Number(b.getAttribute("data-i"))); return; }
+    if (a === "begin") { begin(); return; }
+    if (a === "resend") { sendLast(); return; }
     if (a === "home") { S.view = "home"; render(); top(); return; }
     if (a === "final") { S.view = "final"; render(); top(); return; }
     if (a === "reset" || a === "restart") {
@@ -774,7 +931,9 @@ h2 {
     if (a === "pick" && run.picked === null) {
       var val = run.opts[run.step][Number(b.getAttribute("data-k"))];
       run.picked = val;
-      if (val === st.quiz[run.step].a) run.points += Q_PTS;
+      var qi = st.quiz[run.step];
+      run.answers.push({ q: qi.q, picked: val, correct: qi.a, ok: val === qi.a });
+      if (val === qi.a) run.points += Q_PTS;
       render("next-btn");
     } else if (a === "next") {
       run.step++; run.picked = null;
@@ -782,7 +941,7 @@ h2 {
     } else if (a === "bin" && run.binPicked === null) {
       var bid = b.getAttribute("data-b");
       run.binPicked = bid;
-      if (bid === st.game.items[run.items[run.item]].b) run.points += ITEM_PTS;
+      if (bid === st.game.items[run.items[run.item]].b) run.gameOk += 1;
       render("next-btn");
     } else if (a === "nextitem") {
       run.item++; run.binPicked = null;
@@ -791,7 +950,7 @@ h2 {
       var k = Number(b.getAttribute("data-k"));
       if (k === run.placed.length) {
         run.placed.push(k);
-        if (!run.miss) run.points += STEP_PTS;
+        if (!run.miss) run.gameOk += 1;
         run.miss = false; run.wrongTap = null;
         render(run.placed.length === st.game.steps.length ? "next-btn" : null);
       } else {
@@ -804,18 +963,34 @@ h2 {
   });
 
   app.addEventListener("input", function (e) {
-    if (e.target && e.target.id === "player-name") { S.name = e.target.value; save(); }
+    if (!e.target) return;
+    if (e.target.id === "first-name") { S.firstName = e.target.value; save(); }
+    if (e.target.id === "last-name") { S.lastName = e.target.value; save(); }
   });
 
-  function boot(data) {
-    if (data && data.S && typeof data.S === "object") { S = data.S; }
-    else { load(); }
-    render();
+  function stationFromHash() {
+    var h = "";
+    try { h = (window.location.hash || "").replace(/^#/, ""); } catch (e) { h = ""; }
+    var m = /^test-([1-4])$/.exec(h);
+    return m ? Number(m[1]) - 1 : -1;
   }
+  function boot(data) {
+    if (data && data.S && typeof data.S === "object") { S = data.S; render(); return; }
+    load();
+    var i = stationFromHash();
+    if (i >= 0) { S.pendingStation = i; S.view = "intro"; render(); } else render();
+  }
+  window.addEventListener("hashchange", function () {
+    var i = stationFromHash();
+    if (i >= 0) { S.pendingStation = i; S.nameError = ""; S.view = "intro"; render(); top(); }
+  });
+  app.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && e.target && (e.target.id === "first-name" || e.target.id === "last-name") && S.view === "intro") begin();
+  });
   try { window.claude && window.claude.hot && window.claude.hot.snapshot && window.claude.hot.snapshot(function () { return { S: S }; }); } catch (e) { /* ignore */ }
   if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(boot);
   else boot((window.claude && window.claude.hot && window.claude.hot.data) || {});
 })();
 </script>
-
-</body></html>
+</body>
+</html>
