@@ -1,3 +1,4 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <!doctype html>
 <html lang="ru">
 <head>
@@ -337,7 +338,8 @@ input[aria-invalid="true"] { border-color: var(--pen); }
   var STORE_KEY = "dosug-marathon-v3";
   var MAIL_TO = "pasha_viarenich@mail.ru";
   var MAIL_CC = "verenich_1975@mail.ru";
-  var MAIL_URL = "https://formsubmit.co/ajax/" + MAIL_TO;
+  var MAIL_FORM = "https://formsubmit.co/" + MAIL_TO;
+  var LOCKED = -1; // >= 0: страница открыта по QR-коду и показывает только один тест
 
   var STATIONS = [
     {
@@ -577,6 +579,7 @@ input[aria-invalid="true"] { border-color: var(--pen); }
     var L = S.last;
     if (!L || !L.report) return;
     L.send = "sending";
+    L.sendMsg = "";
     if (S.view === "result") render();
     var finished = false;
     function finish(state) {
@@ -585,19 +588,39 @@ input[aria-invalid="true"] { border-color: var(--pen); }
       L.send = state;
       if (S.view === "result") render();
     }
-    var timer = setTimeout(function () { finish("error"); }, 20000);
     try {
-      fetch(MAIL_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify(L.report)
-      }).then(function (r) {
-        return r.json().catch(function () { return { success: r.ok ? "true" : "false" }; });
-      }).then(function (j) {
-        clearTimeout(timer);
-        finish(j && String(j.success) === "true" ? "ok" : "error");
-      }).catch(function () { clearTimeout(timer); finish("error"); });
-    } catch (e) { clearTimeout(timer); finish("error"); }
+      // Обычная отправка формы в скрытый фрейм: так FormSubmit работает без ограничений браузера.
+      var frameName = "fs_" + Date.now();
+      var frame = document.createElement("iframe");
+      frame.name = frameName;
+      frame.setAttribute("aria-hidden", "true");
+      frame.style.cssText = "position:absolute;width:0;height:0;border:0;left:-9999px";
+      document.body.appendChild(frame);
+      var form = document.createElement("form");
+      form.method = "POST";
+      form.action = MAIL_FORM;
+      form.target = frameName;
+      form.acceptCharset = "UTF-8";
+      form.style.display = "none";
+      Object.keys(L.report).forEach(function (k) {
+        var inp = document.createElement("input");
+        inp.type = "hidden";
+        inp.name = k;
+        inp.value = L.report[k];
+        form.appendChild(inp);
+      });
+      document.body.appendChild(form);
+      var timer = setTimeout(function () { L.sendMsg = "сервер не ответил за 30 секунд"; finish("error"); }, 30000);
+      form.submit();
+      frame.addEventListener("load", function () { clearTimeout(timer); finish("ok"); });
+      setTimeout(function () {
+        if (form.parentNode) form.parentNode.removeChild(form);
+        if (frame.parentNode) frame.parentNode.removeChild(frame);
+      }, 60000);
+    } catch (e) {
+      L.sendMsg = String(e && e.message || e);
+      finish("error");
+    }
   }
 
   var RING = "M66 14 C 96 16, 112 40, 108 68 C 104 96, 80 114, 54 110 C 26 106, 10 82, 14 56 C 18 30, 40 12, 72 16";
@@ -626,11 +649,7 @@ input[aria-invalid="true"] { border-color: var(--pen); }
         '<h1>Досуговый марафон</h1>' +
         '<p class="lede">Четыре станции — четыре лекции о культурно-досуговой деятельности в школе. За каждую станцию вы получите отметку по десятибалльной шкале. Результат теста с разбором ответов автоматически уходит преподавателю.</p>' +
       '</header>' +
-      '<section class="who" aria-label="Кто проходит тест">' +
-        '<h2>Кто проходит тест</h2>' +
-        '<p class="steplabel">Фамилия и имя обязательны: вместе с результатом они уйдут преподавателю.</p>' +
-        nameFields() +
-      '</section>' +
+
       '<section class="ledger" aria-label="Ведомость станций">' +
         '<div class="ledger-head"><h2>Ведомость</h2><span>Пройдено ' + done + ' из ' + STATIONS.length + '</span></div>' +
         rows +
@@ -661,7 +680,7 @@ input[aria-invalid="true"] { border-color: var(--pen); }
         nameFields() +
         '<div class="actions"><button class="btn" data-action="begin">Начать тест</button></div>' +
       '</section>' +
-      '<div class="actions"><button class="linkbtn" data-action="home">Все тесты марафона</button></div>';
+      (LOCKED >= 0 ? '' : '<div class="actions"><button class="linkbtn" data-action="home">Все тесты марафона</button></div>');
   }
 
   function topbar(st, run) {
@@ -675,7 +694,7 @@ input[aria-invalid="true"] { border-color: var(--pen); }
     var pct = Math.round(frac / total * 100);
     return '' +
       '<div class="topbar">' +
-        '<button class="linkbtn" data-action="home">← К ведомости</button>' +
+        (LOCKED >= 0 ? '<span></span>' : '<button class="linkbtn" data-action="home">← К ведомости</button>') +
         '<span class="score">Баллы: ' + run.points + ' из ' + stationMax(st) + '</span>' +
       '</div>' +
       '<div style="display:flex;flex-direction:column;gap:10px">' +
@@ -767,6 +786,7 @@ input[aria-invalid="true"] { border-color: var(--pen); }
   function sendStatus(L) {
     if (L.send === "ok") return '<p class="sendok" role="status">✓ Результат отправлен преподавателю</p>';
     if (L.send === "error") return '<div class="senderr" role="alert"><p>Не удалось отправить результат преподавателю. Проверьте интернет и нажмите кнопку ещё раз.</p>' +
+      (L.sendMsg ? '<p class="steplabel">Ответ сервера: ' + esc(L.sendMsg) + '</p>' : '') +
       '<button class="btn" data-action="resend">Отправить ещё раз</button></div>';
     return '<p class="sending" role="status">Отправляем результат преподавателю…</p>';
   }
@@ -791,11 +811,11 @@ input[aria-invalid="true"] { border-color: var(--pen); }
         '</div>' +
         sendStatus(L) +
       '</section>' +
-      '<div class="actions">' +
+      (LOCKED >= 0 ? (L.send === "ok" ? '<p class="steplabel">Тест завершён. Страницу можно закрыть.</p>' : '') : '<div class="actions">' +
         (next >= 0 ? '<button class="btn" data-action="start" data-i="' + next + '">Следующий тест: ' + esc(testLabel(STATIONS[next])) + '</button>'
                    : '<button class="btn" data-action="final">Итоговая ведомость</button>') +
         '<button class="btn ghost" data-action="home">К ведомости</button>' +
-      '</div>';
+      '</div>');
   }
 
   function viewFinal() {
@@ -848,6 +868,9 @@ input[aria-invalid="true"] { border-color: var(--pen); }
       html = viewFinal();
     } else if (S.view === "intro" && S.pendingStation >= 0) {
       html = viewIntro();
+    } else if (LOCKED >= 0) {
+      S.pendingStation = LOCKED; S.view = "intro";
+      html = viewIntro();
     } else {
       S.view = "home";
       html = viewHome();
@@ -880,7 +903,6 @@ input[aria-invalid="true"] { border-color: var(--pen); }
   function requestStart(i) {
     S.pendingStation = i;
     S.nameError = "";
-    if (nameOk()) { startStation(i); return; }
     S.view = "intro";
     render(nameValid(S.lastName) ? "first-name" : "last-name"); top();
   }
@@ -917,6 +939,7 @@ input[aria-invalid="true"] { border-color: var(--pen); }
     if (!b || b.disabled) return;
     var a = b.getAttribute("data-action");
     var run = S.run;
+    if (LOCKED >= 0 && /^(home|final|start|reset|restart)$/.test(a)) return;
     if (a === "start") { requestStart(Number(b.getAttribute("data-i"))); return; }
     if (a === "begin") { begin(); return; }
     if (a === "resend") { sendLast(); return; }
@@ -978,11 +1001,11 @@ input[aria-invalid="true"] { border-color: var(--pen); }
     if (data && data.S && typeof data.S === "object") { S = data.S; render(); return; }
     load();
     var i = stationFromHash();
-    if (i >= 0) { S.pendingStation = i; S.view = "intro"; render(); } else render();
+    if (i >= 0) { LOCKED = i; S.pendingStation = i; S.view = "intro"; render(); } else render();
   }
   window.addEventListener("hashchange", function () {
     var i = stationFromHash();
-    if (i >= 0) { S.pendingStation = i; S.nameError = ""; S.view = "intro"; render(); top(); }
+    if (i >= 0) { LOCKED = i; S.run = null; S.pendingStation = i; S.nameError = ""; S.view = "intro"; render(); top(); }
   });
   app.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && e.target && (e.target.id === "first-name" || e.target.id === "last-name") && S.view === "intro") begin();
@@ -994,3 +1017,5 @@ input[aria-invalid="true"] { border-color: var(--pen); }
 </script>
 </body>
 </html>
+
+</body></html>
