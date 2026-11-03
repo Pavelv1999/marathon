@@ -1,4 +1,3 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <!doctype html>
 <html lang="ru">
 <head>
@@ -336,9 +335,12 @@ input[aria-invalid="true"] { border-color: var(--pen); }
 
   var Q_PTS = 2;
   var STORE_KEY = "dosug-marathon-v3";
-  var MAIL_TO = "pasha_viarenich@mail.ru";
-  var MAIL_CC = "verenich_1975@mail.ru";
-  var MAIL_FORM = "https://formsubmit.co/" + MAIL_TO;
+  // Письма отправляет Web3Forms (FormSubmit не работает с 29.10.2026).
+  // Один ключ = одна почта. Ключ получают на web3forms.com → Create Access Key.
+  var WEB3_KEYS = [
+    "80a9b7a4-7220-4020-9c13-8413561b7e04",
+    "ВСТАВЬ_КЛЮЧ_ДЛЯ_verenich_1975@mail.ru"
+  ];
   var LOCKED = -1; // >= 0: страница открыта по QR-коду и показывает только один тест
 
   var STATIONS = [
@@ -558,8 +560,6 @@ input[aria-invalid="true"] { border-color: var(--pen); }
     var d = {};
     d._subject = "Досуговый марафон · " + testLabel(st) + " · " + fullName() + " · отметка " + mark + " из 10";
     d._template = "table";
-    d._captcha = "false";
-    d._cc = MAIL_CC;
     d["Ученик"] = fullName();
     d["Тест"] = testLabel(st) + ". " + st.title;
     d["ИТОГ"] = run.points + " из " + stationMax(st) + " баллов — отметка " + mark + " из 10";
@@ -575,52 +575,54 @@ input[aria-invalid="true"] { border-color: var(--pen); }
     return d;
   }
 
+  function keyOk(k) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(k).trim()); }
+
+  function postMail(key, report) {
+    var body = { access_key: String(key).trim(), subject: report._subject, from_name: "Досуговый марафон" };
+    Object.keys(report).forEach(function (k) { if (k.charAt(0) !== "_") body[k] = report[k]; });
+    var ctrl = null, timer = null;
+    try { ctrl = new AbortController(); timer = setTimeout(function () { ctrl.abort(); }, 25000); } catch (e) { ctrl = null; }
+    return fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify(body),
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function (res) {
+      if (timer) clearTimeout(timer);
+      return res.json().catch(function () { return {}; }).then(function (j) {
+        var good = res.ok && j.success !== false && String(j.success) !== "false";
+        return { ok: good, msg: j.message || ("код " + res.status) };
+      });
+    }).catch(function (e) {
+      if (timer) clearTimeout(timer);
+      return { ok: false, msg: (e && e.name === "AbortError") ? "сервер не ответил за 25 секунд" : "нет связи с сервером" };
+    });
+  }
+
   function sendLast() {
     var L = S.last;
     if (!L || !L.report) return;
+    var keys = WEB3_KEYS.filter(keyOk);
     L.send = "sending";
     L.sendMsg = "";
     if (S.view === "result") render();
-    var finished = false;
-    function finish(state) {
-      if (finished) return;
-      finished = true;
-      L.send = state;
+    if (!keys.length) {
+      L.send = "error";
+      L.sendMsg = "в тест не вставлен ключ Web3Forms";
       if (S.view === "result") render();
+      return;
     }
-    try {
-      // Обычная отправка формы в скрытый фрейм: так FormSubmit работает без ограничений браузера.
-      var frameName = "fs_" + Date.now();
-      var frame = document.createElement("iframe");
-      frame.name = frameName;
-      frame.setAttribute("aria-hidden", "true");
-      frame.style.cssText = "position:absolute;width:0;height:0;border:0;left:-9999px";
-      document.body.appendChild(frame);
-      var form = document.createElement("form");
-      form.method = "POST";
-      form.action = MAIL_FORM;
-      form.target = frameName;
-      form.acceptCharset = "UTF-8";
-      form.style.display = "none";
-      Object.keys(L.report).forEach(function (k) {
-        var inp = document.createElement("input");
-        inp.type = "hidden";
-        inp.name = k;
-        inp.value = L.report[k];
-        form.appendChild(inp);
-      });
-      document.body.appendChild(form);
-      var timer = setTimeout(function () { L.sendMsg = "сервер не ответил за 30 секунд"; finish("error"); }, 30000);
-      form.submit();
-      frame.addEventListener("load", function () { clearTimeout(timer); finish("ok"); });
-      setTimeout(function () {
-        if (form.parentNode) form.parentNode.removeChild(form);
-        if (frame.parentNode) frame.parentNode.removeChild(frame);
-      }, 60000);
-    } catch (e) {
-      L.sendMsg = String(e && e.message || e);
-      finish("error");
-    }
+    // Если письмо на первую почту уже ушло, при повторе отправляем только недошедшие.
+    L.sentKeys = L.sentKeys || {};
+    var todo = keys.filter(function (k) { return !L.sentKeys[k]; });
+    Promise.all(todo.map(function (k) {
+      return postMail(k, L.report).then(function (r) { if (r.ok) L.sentKeys[k] = true; return r; });
+    })).then(function (rs) {
+      var bad = rs.filter(function (r) { return !r.ok; });
+      L.send = bad.length ? "error" : "ok";
+      L.sendMsg = bad.length ? bad[0].msg : "";
+      if (S.view === "result") render();
+    });
   }
 
   var RING = "M66 14 C 96 16, 112 40, 108 68 C 104 96, 80 114, 54 110 C 26 106, 10 82, 14 56 C 18 30, 40 12, 72 16";
@@ -1017,5 +1019,3 @@ input[aria-invalid="true"] { border-color: var(--pen); }
 </script>
 </body>
 </html>
-
-</body></html>
